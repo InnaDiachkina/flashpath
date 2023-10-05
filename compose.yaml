@@ -1,0 +1,16 @@
+services:
+  mongodb:
+    image: 'mongo:latest'
+    restart: always
+    environment:
+      - 'MONGO_INITDB_DATABASE=mydatabase'
+      - 'MONGO_INITDB_ROOT_PASSWORD=secret'
+      - 'MONGO_INITDB_ROOT_USERNAME=root'
+    ports:
+      - '27017:27017'
+  redis:
+    depends_on:
+      - mongodb
+    image: 'redis:latest'
+    ports:
+      - '6379:6379'
