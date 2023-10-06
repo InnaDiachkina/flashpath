@@ -4,9 +4,7 @@ import com.flashpath.dto.UrlShorterRequestDto;
 import com.flashpath.dto.UrlShorterResponseDto;
 
 public interface UrlShorterService {
-    UrlShorterResponseDto getByOriginalUrl(UrlShorterRequestDto requestDto, String requestUrl);
+    UrlShorterResponseDto getByOriginalUrl(UrlShorterRequestDto requestDto);
 
     String createFlashUrl();
-
-    String modifyFlashUrlPrefix(String requestUrl);
 }

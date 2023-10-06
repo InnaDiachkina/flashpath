@@ -47,7 +47,7 @@ public class FlashPathControllerTest {
         originalUrl.setOriginalUrl(ORIGINAL_URL);
         UrlShorterResponseDto flashUrl = new UrlShorterResponseDto();
         flashUrl.setFlashUrl(HTTP_RESPONSE_URL);
-        Mockito.when(urlShorterService.getByOriginalUrl(originalUrl, HTTP_REQUEST_URL))
+        Mockito.when(urlShorterService.getByOriginalUrl(originalUrl))
                 .thenReturn(flashUrl);
         MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post(HTTP_REQUEST_URL)
                         .contentType(MediaType.APPLICATION_JSON)
