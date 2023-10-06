@@ -24,10 +24,13 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 @SpringBootTest
 public class FlashPathControllerTest {
     private static final String ORIGINAL_URL = "http:/originalUrl.test";
+    private static final String HTTP_REQUEST_URL = "http://localhost:8080/api/url/flash";
+    private static final String HTTP_RESPONSE_URL = "http://localhost:8080/api/url/abcdefj";
     private static final String FLASH_URL = "abcdefj";
     private static final String GET_FLASH_URL = "/api/url/flash";
     private static final String FIND_ORIGINAL_URL = "/api/url/original/{flashUrl}";
-    private static final String RESPONSE_JSON_AS_STRING = "{\"flashUrl\":\"abcdefj\"}";
+    private static final String RESPONSE_JSON_AS_STRING =
+            "{\"flashUrl\":\"http://localhost:8080/api/url/abcdefj\"}";
     @Autowired
     protected  MockMvc mockMvc;
     @MockBean
@@ -43,9 +46,10 @@ public class FlashPathControllerTest {
         UrlShorterRequestDto originalUrl = new UrlShorterRequestDto();
         originalUrl.setOriginalUrl(ORIGINAL_URL);
         UrlShorterResponseDto flashUrl = new UrlShorterResponseDto();
-        flashUrl.setFlashUrl(FLASH_URL);
-        Mockito.when(urlShorterService.getByOriginalUrl(originalUrl)).thenReturn(flashUrl);
-        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post(GET_FLASH_URL)
+        flashUrl.setFlashUrl(HTTP_RESPONSE_URL);
+        Mockito.when(urlShorterService.getByOriginalUrl(originalUrl, HTTP_REQUEST_URL))
+                .thenReturn(flashUrl);
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post(HTTP_REQUEST_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(new ObjectMapper().writeValueAsString(originalUrl)))
                 .andExpect(MockMvcResultMatchers.status().isOk())

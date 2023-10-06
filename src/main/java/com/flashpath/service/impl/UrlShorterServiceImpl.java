@@ -19,14 +19,18 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class UrlShorterServiceImpl implements UrlShorterService {
     private static final Logger logger = LogManager.getLogger(UrlShorterServiceImpl.class);
+    private static final String MIDDLE_PART_RESPONSE_URL = "original/";
+    private static final int LENGTH_PART_REQUEST_URL = 5;
     private final UrlShorterRepository urlShorterRepository;
     private final FlashUrlGenerator flashUrlGenerator;
     private final UrlCacheService urlCacheService;
     private final UrlShorterMapper urlShorterMapper;
 
     @Override
-    public UrlShorterResponseDto getByOriginalUrl(UrlShorterRequestDto requestDto) {
+    public UrlShorterResponseDto getByOriginalUrl(UrlShorterRequestDto requestDto,
+                                                  String requestUrl) {
         String originalUrl = requestDto.getOriginalUrl();
+        String prefixUrl = modifyFlashUrlPrefix(requestUrl);
         logger.info("getByOriginalUrl was called with url " + originalUrl);
         Optional<UrlShorter> optional =
                 urlShorterRepository.findByOriginalUrl(originalUrl);
@@ -39,9 +43,13 @@ public class UrlShorterServiceImpl implements UrlShorterService {
             urlCache.setFlashUrl(flashUrl);
             urlCache.setOriginalUrl(originalUrl);
             urlCacheService.save(urlCache);
-            return urlShorterMapper.toDto(urlShorter);
+            UrlShorterResponseDto responseDto = urlShorterMapper.toDto(urlShorter);
+            responseDto.setFlashUrl(prefixUrl + responseDto.getFlashUrl());
+            return responseDto;
         }
-        return urlShorterMapper.toDto(optional.get());
+        UrlShorterResponseDto responseDto = urlShorterMapper.toDto(optional.get());
+        responseDto.setFlashUrl(prefixUrl + responseDto.getFlashUrl());
+        return responseDto;
     }
 
     @Override
@@ -51,5 +59,11 @@ public class UrlShorterServiceImpl implements UrlShorterService {
             flashUrl = flashUrlGenerator.generateFlashUrl();
         } while (urlShorterRepository.existsByFlashUrl(flashUrl));
         return flashUrl;
+    }
+
+    @Override
+    public String modifyFlashUrlPrefix(String requestUrl) {
+        return requestUrl.substring(0, requestUrl.length() - LENGTH_PART_REQUEST_URL)
+                + MIDDLE_PART_RESPONSE_URL;
     }
 }
