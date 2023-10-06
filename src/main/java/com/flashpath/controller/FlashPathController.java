@@ -4,6 +4,7 @@ import com.flashpath.dto.UrlShorterRequestDto;
 import com.flashpath.dto.UrlShorterResponseDto;
 import com.flashpath.service.UrlCacheService;
 import com.flashpath.service.UrlShorterService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,8 +23,10 @@ public class FlashPathController {
     private final UrlCacheService urlCacheService;
 
     @PostMapping("/flash")
-    public UrlShorterResponseDto getFlashUrl(@RequestBody @Valid UrlShorterRequestDto originalUrl) {
-        return urlShorterService.getByOriginalUrl(originalUrl);
+    public UrlShorterResponseDto getFlashUrl(@RequestBody @Valid UrlShorterRequestDto originalUrl,
+                                             HttpServletRequest request) {
+        String requestUrl = request.getRequestURL().toString();
+        return urlShorterService.getByOriginalUrl(originalUrl, requestUrl);
     }
 
     @GetMapping("/original/{flashUrl}")
