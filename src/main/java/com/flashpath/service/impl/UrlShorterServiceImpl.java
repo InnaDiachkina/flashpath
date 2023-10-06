@@ -9,6 +9,7 @@ import com.flashpath.repository.UrlShorterRepository;
 import com.flashpath.service.UrlCacheService;
 import com.flashpath.service.UrlShorterService;
 import com.flashpath.util.FlashUrlGenerator;
+import com.flashpath.util.FlashUrlModifier;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
@@ -19,18 +20,15 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class UrlShorterServiceImpl implements UrlShorterService {
     private static final Logger logger = LogManager.getLogger(UrlShorterServiceImpl.class);
-    private static final String MIDDLE_PART_RESPONSE_URL = "original/";
-    private static final int LENGTH_PART_REQUEST_URL = 5;
     private final UrlShorterRepository urlShorterRepository;
     private final FlashUrlGenerator flashUrlGenerator;
     private final UrlCacheService urlCacheService;
     private final UrlShorterMapper urlShorterMapper;
+    private final FlashUrlModifier flashUrlModifier;
 
     @Override
-    public UrlShorterResponseDto getByOriginalUrl(UrlShorterRequestDto requestDto,
-                                                  String requestUrl) {
+    public UrlShorterResponseDto getByOriginalUrl(UrlShorterRequestDto requestDto) {
         String originalUrl = requestDto.getOriginalUrl();
-        String prefixUrl = modifyFlashUrlPrefix(requestUrl);
         logger.info("getByOriginalUrl was called with url " + originalUrl);
         Optional<UrlShorter> optional =
                 urlShorterRepository.findByOriginalUrl(originalUrl);
@@ -44,11 +42,11 @@ public class UrlShorterServiceImpl implements UrlShorterService {
             urlCache.setOriginalUrl(originalUrl);
             urlCacheService.save(urlCache);
             UrlShorterResponseDto responseDto = urlShorterMapper.toDto(urlShorter);
-            responseDto.setFlashUrl(prefixUrl + responseDto.getFlashUrl());
+            responseDto.setFlashUrl(flashUrlModifier.modifyFlashUrl(responseDto.getFlashUrl()));
             return responseDto;
         }
         UrlShorterResponseDto responseDto = urlShorterMapper.toDto(optional.get());
-        responseDto.setFlashUrl(prefixUrl + responseDto.getFlashUrl());
+        responseDto.setFlashUrl(flashUrlModifier.modifyFlashUrl(responseDto.getFlashUrl()));
         return responseDto;
     }
 
@@ -59,11 +57,5 @@ public class UrlShorterServiceImpl implements UrlShorterService {
             flashUrl = flashUrlGenerator.generateFlashUrl();
         } while (urlShorterRepository.existsByFlashUrl(flashUrl));
         return flashUrl;
-    }
-
-    @Override
-    public String modifyFlashUrlPrefix(String requestUrl) {
-        return requestUrl.substring(0, requestUrl.length() - LENGTH_PART_REQUEST_URL)
-                + MIDDLE_PART_RESPONSE_URL;
     }
 }

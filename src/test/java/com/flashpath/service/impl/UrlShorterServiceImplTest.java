@@ -13,6 +13,8 @@ import com.flashpath.repository.UrlShorterRepository;
 import com.flashpath.service.UrlCacheService;
 import com.flashpath.util.FlashUrlGenerator;
 import java.util.Optional;
+
+import com.flashpath.util.FlashUrlModifier;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,7 +25,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 public class UrlShorterServiceImplTest {
-    private static final String HTTP_REQUEST_URL = "http://localhost:8080/api/url/flash";
     private static final String ORIGINAL_URL = "http:/originalUrl.test";
     private static final String FLASH_URL_PREFIX = "http://localhost:8080/api/url/original/";
     private static final String FLASH_URL = "abcdefj";
@@ -37,6 +38,8 @@ public class UrlShorterServiceImplTest {
     private UrlCacheService urlCacheService;
     @Mock
     private FlashUrlGenerator flashUrlGenerator;
+    @Mock
+    private FlashUrlModifier flashUrlModifier;
 
     @Test
     @DisplayName("""
@@ -52,7 +55,7 @@ public class UrlShorterServiceImplTest {
         urlShorter.setFlashUrl(FLASH_URL);
         Mockito.when(urlShorterRepository.findByOriginalUrl(ORIGINAL_URL)).thenReturn(Optional.of(urlShorter));
         Mockito.when(urlShorterMapper.toDto(urlShorter)).thenReturn(expected);
-        UrlShorterResponseDto actual = urlShorterService.getByOriginalUrl(originalUrl, HTTP_REQUEST_URL);
+        UrlShorterResponseDto actual = urlShorterService.getByOriginalUrl(originalUrl);
         assertNotNull(actual);
         assertEquals(expected, actual);
     }
@@ -67,20 +70,20 @@ public class UrlShorterServiceImplTest {
         originalUrl.setOriginalUrl(ORIGINAL_URL);
         UrlShorterResponseDto expected = new UrlShorterResponseDto();
         expected.setFlashUrl(FLASH_URL_PREFIX + FLASH_URL);
-        UrlShorter urlMurlShorter = new UrlShorter();
-        urlMurlShorter.setOriginalUrl(ORIGINAL_URL);
-        urlMurlShorter.setFlashUrl(FLASH_URL);
+        UrlShorter urlShorter = new UrlShorter();
+        urlShorter.setOriginalUrl(ORIGINAL_URL);
+        urlShorter.setFlashUrl(FLASH_URL);
         UrlCache urlCache = new UrlCache();
         urlCache.setFlashUrl(FLASH_URL);
         urlCache.setOriginalUrl(ORIGINAL_URL);
         Mockito.when(urlShorterRepository.findByOriginalUrl(ORIGINAL_URL)).thenReturn(Optional.empty());
         Mockito.when(flashUrlGenerator.generateFlashUrl()).thenReturn(FLASH_URL);
         Mockito.when(urlShorterRepository.existsByFlashUrl(FLASH_URL)).thenReturn(false);
-        Mockito.when(urlShorterRepository.save(urlMurlShorter)).thenReturn(urlMurlShorter);
+        Mockito.when(urlShorterRepository.save(urlShorter)).thenReturn(urlShorter);
         Mockito.when(urlCacheService.save(urlCache)).thenReturn(urlCache);
-        Mockito.when(urlShorterMapper.toModel(originalUrl)).thenReturn(urlMurlShorter);
-        Mockito.when(urlShorterMapper.toDto(urlMurlShorter)).thenReturn(expected);
-        UrlShorterResponseDto actual = urlShorterService.getByOriginalUrl(originalUrl, HTTP_REQUEST_URL);
+        Mockito.when(urlShorterMapper.toModel(originalUrl)).thenReturn(urlShorter);
+        Mockito.when(urlShorterMapper.toDto(urlShorter)).thenReturn(expected);
+        UrlShorterResponseDto actual = urlShorterService.getByOriginalUrl(originalUrl);
         assertNotNull(actual);
         assertEquals(expected, actual);
     }
@@ -103,17 +106,6 @@ public class UrlShorterServiceImplTest {
         Mockito.verify(urlShorterRepository).existsByFlashUrl("flashUrl3");
         assertNotNull(url1);
         assertNotNull(url2);
-    }
-
-    @Test
-
-    @DisplayName("""
-            Check modifyUrlPrefix
-            """)
-    void modifyFlashUrlPrefix_shouldModifyFlashUrlPrefix() {
-        String actual = urlShorterService.modifyFlashUrlPrefix(HTTP_REQUEST_URL);
-        assertNotNull(actual);
-        assertEquals(FLASH_URL_PREFIX, actual);
     }
 }
 
