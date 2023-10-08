@@ -8,6 +8,7 @@ public class CustomMongoDbContainer extends MongoDBContainer {
 
     public CustomMongoDbContainer() {
         super(DB_IMAGE);
+        withExposedPorts(27017);
     }
 
     public static synchronized CustomMongoDbContainer getInstance() {
@@ -20,9 +21,8 @@ public class CustomMongoDbContainer extends MongoDBContainer {
     @Override
     public void start() {
         super.start();
-        System.setProperty("spring.data.mongodb.host", mongoDbContainer.getHost());
-        System.setProperty("spring.data.mongodb.port", String.valueOf(getMappedPort(27017)));
-        System.setProperty("spring.data.mongodb.database", "mydatabase");
+        System.setProperty("spring.data.mongodb.uri", mongoDbContainer.getReplicaSetUrl());
+        System.setProperty("spring.data.mongodb.database", "testmydatabase");
         System.setProperty("spring.data.mongodb.username", "root");
         System.setProperty("spring.data.mongodb.password", "secret");
     }

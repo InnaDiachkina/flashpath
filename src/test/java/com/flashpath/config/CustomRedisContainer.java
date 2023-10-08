@@ -8,9 +8,10 @@ public class CustomRedisContainer extends GenericContainer<CustomRedisContainer>
 
     public CustomRedisContainer() {
         super(REDIS_IMAGE);
+        this.withExposedPorts(6379);
     }
 
-    public static synchronized CustomRedisContainer getInstance() {
+     public static synchronized CustomRedisContainer getInstance() {
         if (redisContainer == null) {
             redisContainer = new CustomRedisContainer();
         }
@@ -20,7 +21,7 @@ public class CustomRedisContainer extends GenericContainer<CustomRedisContainer>
     @Override
     public void start() {
         super.start();
-        System.setProperty("spring.data.redis.host", redisContainer.getHost());
+        System.setProperty("spring.data.redis.host", redisContainer.getContainerIpAddress());
         System.setProperty("spring.data.redis.port", String.valueOf(getMappedPort(6379)));
     }
 

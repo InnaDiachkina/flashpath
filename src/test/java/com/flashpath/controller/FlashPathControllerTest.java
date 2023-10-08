@@ -4,11 +4,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flashpath.config.CustomMongoDbContainer;
+import com.flashpath.config.CustomRedisContainer;
 import com.flashpath.dto.UrlShorterRequestDto;
 import com.flashpath.model.UrlCache;
 import com.flashpath.model.UrlShorter;
 import com.flashpath.repository.UrlCacheRepository;
 import com.flashpath.repository.UrlShorterRepository;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -22,8 +25,11 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest
+@Testcontainers
 public class FlashPathControllerTest {
     private static final String ORIGINAL_URL = "http:/originalUrl.test";
     private static final String HTTP_REQUEST_URL = "http://localhost:8080/api/url/flash";
@@ -33,8 +39,11 @@ public class FlashPathControllerTest {
     private static final String RESPONSE_JSON_AS_STRING =
             "{\"flashUrl\":\"http://localhost:8080/api/url/original/abcdefj\"}";
     private static final int LENGTH_RESPONSE_JSON = 61;
-    @Autowired
-    protected static MockMvc mockMvc;
+    private static MockMvc mockMvc;
+    @Container
+    private static CustomMongoDbContainer mongoDbTestContainer = CustomMongoDbContainer.getInstance();
+    @Container
+    private static CustomRedisContainer redisTestContainer = CustomRedisContainer.getInstance();
     @Autowired
     private UrlShorterRepository urlShorterRepository;
     @Autowired
@@ -46,9 +55,17 @@ public class FlashPathControllerTest {
     static void beforeAll(
             @Autowired WebApplicationContext applicationContext
     ) {
+        mongoDbTestContainer.start();
+        redisTestContainer.start();
         mockMvc = MockMvcBuilders
                 .webAppContextSetup(applicationContext)
                 .build();
+    }
+
+    @AfterAll
+    static void afterAll() {
+        mongoDbTestContainer.stop();
+        redisTestContainer.stop();
     }
 
     @AfterEach
