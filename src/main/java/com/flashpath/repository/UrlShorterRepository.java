@@ -10,5 +10,6 @@ public interface UrlShorterRepository extends MongoRepository<UrlShorter, String
     Optional<UrlShorter> findByOriginalUrl(String originalUrl);
 
     boolean existsByFlashUrl(String flashUrl);
+
 }
 
